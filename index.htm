@@ -47,7 +47,7 @@
             left: 5%;        /* 調整以覆蓋原圖的時間位置 */
             width: 15%;
             height: 3.5%;
-            background-color: #c7008f; /* 這裡的顏色設定為接近原圖頂部的桃紅色，若有色差可微調此色碼 */
+            background-color: #c7008f; /* 已更新為指定的桃紅色 */
             color: white;
             font-weight: 600;
             font-size: 4.2cqi; /* 根據容器寬度動態調整字體大小 */
@@ -80,7 +80,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            object-fit: contain; /* 確保圖片不變形，如果你提供的是滿版帶透明的PNG，此設定完美契合 */
+            object-fit: contain; /* 確保圖片不變形 */
             z-index: 20;
             user-select: none;
             -webkit-user-drag: none;
@@ -95,6 +95,18 @@
         .dialog-overlay.show {
             opacity: 1;
             transform: scale(1);
+        }
+
+        /* 新增：隱藏的全螢幕按鈕 */
+        .fullscreen-btn {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 25%;
+            height: 12%;
+            z-index: 50; /* 確保在最上層 */
+            cursor: default; /* 不顯示可點擊的游標以保持隱蔽 */
+            -webkit-tap-highlight-color: transparent;
         }
     </style>
 </head>
@@ -113,6 +125,9 @@
         
         <!-- 對話框 (初始隱藏，出現時為 2.png，按下時為 3.png) -->
         <img src="" id="dialogImage" class="dialog-overlay" alt="對話框">
+
+        <!-- 新增：右下角隱藏全螢幕按鈕 -->
+        <div class="fullscreen-btn" id="fullscreenBtn"></div>
     </div>
 
     <script>
@@ -121,6 +136,7 @@
         const dialogImage = document.getElementById('dialogImage');
         const backdrop = document.getElementById('backdrop');
         const timeDisplay = document.getElementById('timeDisplay');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
         
         // 預先載入圖片，避免點擊瞬間圖片還沒下載完造成閃爍
         const img3 = new Image(); img3.src = '3.png';
@@ -137,6 +153,28 @@
         // 初始化時間並設定每秒更新 (1000 毫秒)
         updateTime();
         setInterval(updateTime, 1000);
+        // -----------------------
+
+        // --- 全螢幕控制邏輯 ---
+        fullscreenBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // 阻止點擊事件傳遞到 container，避免觸發核銷流程
+            
+            const docEl = document.documentElement; // 讓整個網頁進入全螢幕，保持黑色背景
+            
+            if (!document.fullscreenElement) {
+                if (docEl.requestFullscreen) {
+                    docEl.requestFullscreen();
+                } else if (docEl.webkitRequestFullscreen) { /* Safari */
+                    docEl.webkitRequestFullscreen();
+                } else if (docEl.msRequestFullscreen) { /* IE11 */
+                    docEl.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        });
         // -----------------------
 
         // 狀態變數：紀錄目前進行到哪一步
