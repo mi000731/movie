@@ -1,6 +1,6 @@
 {
-  "name": "電影票",
-  "short_name": "電影票",
+  "name": "國賓看電影",
+  "short_name": "國賓看電影",
   "display": "standalone",
   "start_url": "./index.htm",
   "background_color": "#333333",
