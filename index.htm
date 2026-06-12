@@ -2,7 +2,8 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- 加入 viewport-fit=cover 強制讓畫面延伸到瀏海/動態島區域 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>電影票核銷模擬 (純圖片流程)</title>
     
     <!-- 新增：Web App Manifest，強制 iOS/Android 進入全螢幕 -->
@@ -12,39 +13,34 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#333333">
+    <meta name="theme-color" content="#000000"> <!-- 修改為黑色 -->
 
     <style>
         body {
             margin: 0;
             padding: 0;
-            background-color: #333;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            /* 修正行動裝置 100vh 可能包含網址列高度的問題 */
-            min-height: -webkit-fill-available;
+            background-color: #000; /* 修改為黑色 */
+            width: 100vw;
+            height: 100vh;
+            /* 針對現代手機瀏覽器的動態高度支援 */
+            height: 100dvh; 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             overscroll-behavior-y: none; /* 防止 Safari 網頁上下回彈效果 */
         }
         
         html {
-            height: -webkit-fill-available;
+            background-color: #000;
         }
 
         /* 手機畫面容器 */
         .phone-container {
             position: relative;
             width: 100%;
-            max-width: 430px; /* 模擬手機寬度 */
-            aspect-ratio: 1170 / 2532; /* 根據你提供的截圖比例 */
+            height: 100%; /* 改為 100% 滿版，移除原先的限制 */
             background-color: #fff;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             cursor: pointer; /* 讓整區都有點擊(手指)提示 */
             -webkit-tap-highlight-color: transparent; /* 移除手機點擊時自帶的半透明閃爍 */
-            container-type: inline-size; /* 讓內部元素可以根據容器寬度自適應縮放 */
         }
 
         /* 滿版底圖 (1.jpg / 4.jpg) */
@@ -55,26 +51,6 @@
             display: block;
             user-select: none;
             -webkit-user-drag: none;
-        }
-
-        /* 修改：頂端滿版純色橫條 (包含真實時間) */
-        .real-time {
-            position: absolute;
-            top: 0;       /* 貼齊頂部 */
-            left: 0;      /* 貼齊左側 */
-            width: 100%;  /* 滿版寬度 */
-            height: 5.5%; /* 調整高度以覆蓋原圖的狀態列 */
-            background-color: #a62687; /* 指定的桃紅色 */
-            color: white;
-            font-weight: 600;
-            font-size: 4.2cqi; /* 根據容器寬度動態調整字體大小 */
-            display: flex;
-            align-items: center;
-            padding-left: 6%; /* 讓時間靠左對齊 */
-            box-sizing: border-box;
-            z-index: 30; /* 最上層：高於底圖、遮罩和對話框 */
-            pointer-events: none; /* 讓點擊能穿透 */
-            letter-spacing: 0.5px;
         }
 
         /* 黑底遮罩特效 */
@@ -134,9 +110,6 @@
     <div class="phone-container" id="container">
         <!-- 底圖 (初始為 1.jpg，最後變 4.jpg) -->
         <img src="1.jpg" id="mainImage" class="base-image" alt="背景畫面">
-        
-        <!-- 頂端滿版純色橫條與即時時間 -->
-        <div class="real-time" id="timeDisplay">--:--</div>
 
         <!-- 半透明黑底遮罩 -->
         <div class="backdrop" id="backdrop"></div>
@@ -153,25 +126,11 @@
         const mainImage = document.getElementById('mainImage');
         const dialogImage = document.getElementById('dialogImage');
         const backdrop = document.getElementById('backdrop');
-        const timeDisplay = document.getElementById('timeDisplay');
         const fullscreenBtn = document.getElementById('fullscreenBtn');
         
         // 預先載入圖片，避免點擊瞬間圖片還沒下載完造成閃爍
         const img3 = new Image(); img3.src = '3.png';
         const img4 = new Image(); img4.src = '4.jpg';
-        
-        // --- 真實時間更新邏輯 ---
-        function updateTime() {
-            const now = new Date();
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            timeDisplay.textContent = `${hours}:${minutes}`;
-        }
-        
-        // 初始化時間並設定每秒更新 (1000 毫秒)
-        updateTime();
-        setInterval(updateTime, 1000);
-        // -----------------------
 
         // --- 全螢幕控制邏輯 ---
         fullscreenBtn.addEventListener('click', (e) => {
