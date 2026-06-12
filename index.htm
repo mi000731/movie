@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>電影票核銷模擬 (純圖片流程)</title>
     
+    <!-- 新增：Web App Manifest，強制 iOS/Android 進入全螢幕 -->
+    <link rel="manifest" href="manifest.json">
+
     <!-- 允許將網頁加入主畫面並以全螢幕 (App模式) 執行，隱藏網址列 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -17,8 +20,8 @@
             padding: 0;
             background-color: #333;
             display: flex;
-            flex-direction: column; /* 讓內容由上往下排列 */
-            align-items: center;    /* 保持水平置中 */
+            justify-content: center;
+            align-items: center;
             min-height: 100vh;
             /* 修正行動裝置 100vh 可能包含網址列高度的問題 */
             min-height: -webkit-fill-available;
@@ -28,13 +31,6 @@
         
         html {
             height: -webkit-fill-available;
-        }
-
-        /* 新增：頂部 70px 空白區域 */
-        .top-spacer {
-            width: 100%;
-            height: 70px;
-            flex-shrink: 0; /* 防止被壓縮 */
         }
 
         /* 手機畫面容器 */
@@ -61,21 +57,22 @@
             -webkit-user-drag: none;
         }
 
-        /* 左上角真實時間區塊 */
+        /* 修改：頂端滿版純色橫條 (包含真實時間) */
         .real-time {
             position: absolute;
-            top: 1.3%;       /* 調整以覆蓋原圖的時間位置 */
-            left: 5%;        /* 調整以覆蓋原圖的時間位置 */
-            width: 15%;
-            height: 3.5%;
-            background-color: #c7008f; /* 已更新為指定的桃紅色 */
+            top: 0;       /* 貼齊頂部 */
+            left: 0;      /* 貼齊左側 */
+            width: 100%;  /* 滿版寬度 */
+            height: 5.5%; /* 調整高度以覆蓋原圖的狀態列 */
+            background-color: #c7008f; /* 指定的桃紅色 */
             color: white;
             font-weight: 600;
             font-size: 4.2cqi; /* 根據容器寬度動態調整字體大小 */
             display: flex;
             align-items: center;
-            justify-content: center;
-            z-index: 5; /* 放在底圖之上，遮罩之下 */
+            padding-left: 6%; /* 讓時間靠左對齊 */
+            box-sizing: border-box;
+            z-index: 30; /* 最上層：高於底圖、遮罩和對話框 */
             pointer-events: none; /* 讓點擊能穿透 */
             letter-spacing: 0.5px;
         }
@@ -133,15 +130,12 @@
 </head>
 <body>
 
-    <!-- 新增：頂部空白區域，用於讓使用者往下拉以隱藏網址列 -->
-    <div class="top-spacer"></div>
-
     <!-- 整個容器都是點擊觸發區 -->
     <div class="phone-container" id="container">
         <!-- 底圖 (初始為 1.jpg，最後變 4.jpg) -->
         <img src="1.jpg" id="mainImage" class="base-image" alt="背景畫面">
         
-        <!-- 即時時間覆蓋層 -->
+        <!-- 頂端滿版純色橫條與即時時間 -->
         <div class="real-time" id="timeDisplay">--:--</div>
 
         <!-- 半透明黑底遮罩 -->
