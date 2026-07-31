@@ -37,12 +37,25 @@
             overscroll-behavior: none; 
             touch-action: none;
             overflow-x: hidden;
+
+            /* 新增：防止久按反白與跳出原生選單 */
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
         
         html {
             background-color: #000;
             width: 100%;
             height: 100%;
+        }
+
+        /* 新增：禁止所有圖片的原生拖曳行為，避免長按被判定為要存圖 */
+        img {
+            -webkit-user-drag: none;
+            -khtml-user-drag: none;
+            -moz-user-drag: none;
+            -o-user-drag: none;
         }
 
         .phone-container {
@@ -275,6 +288,11 @@
             } else {
                 if (document.exitFullscreen) document.exitFullscreen();
             }
+        });
+
+        // 新增：全面禁用滑鼠右鍵與手機長按跳出的選單 (Context Menu)
+        window.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
         });
 
         // 點擊左上角熱區 (顯示 0.jpg)
