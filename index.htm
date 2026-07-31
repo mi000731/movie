@@ -152,13 +152,13 @@
             object-fit: contain; 
             z-index: 20; /* 層級最高 */
             opacity: 0;
-            transform: scale(1.6); /* 配合最終 1.5 倍，將彈出前狀態調整為 1.6 */
+            transform: scale(0.9); /* 配合最終 0.8 倍，將彈出前狀態調整為 0.9 */
             transition: opacity 0.2s ease-out, transform 0.2s ease-out;
             pointer-events: none;
         }
         .global-dialog-overlay.show {
             opacity: 1;
-            transform: scale(1.5); /* 顯示時放大至 1.5 倍 */
+            transform: scale(0.8); /* 顯示時縮小至 80% (0.8 倍) */
         }
 
         /* 左上角隱形返回熱區 */
