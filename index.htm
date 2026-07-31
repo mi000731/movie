@@ -150,6 +150,33 @@
             transform: scale(1);
         }
 
+        /* 0.jpg 滿版覆蓋層 */
+        .zero-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+            z-index: 40; /* 層級介於切割容器與全螢幕按鈕之間 */
+            opacity: 0;
+            pointer-events: none; /* 預設不阻擋點擊 */
+            transition: opacity 0.2s ease-out;
+        }
+        .zero-overlay.show {
+            opacity: 1;
+            pointer-events: auto; /* 顯示時攔截所有點擊事件 */
+        }
+
+        /* 左上角點擊觸發區 (模擬返回按鈕區域) */
+        .top-left-zone {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100px;
+            height: 90px;
+            z-index: 35;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         .fullscreen-btn {
             position: absolute;
             bottom: 0; right: 0;
@@ -165,6 +192,12 @@
     <!-- 整個容器都是事件觸發區 -->
     <div class="phone-container" id="container">
         
+        <!-- 左上角返回區塊 -->
+        <div class="top-left-zone" id="topLeftZone"></div>
+
+        <!-- 0.jpg 滿版覆蓋層 -->
+        <img src="0.jpg" id="zeroOverlay" class="zero-overlay" alt="列表頁">
+
         <!-- ================= 上半部 (固定) ================= -->
         <div class="split-container top-part">
             <div class="full-content">
@@ -221,7 +254,11 @@
         const bottomBackdrop = document.getElementById('bottomBackdrop');
         const bottomDialog = document.getElementById('bottomDialog');
         
+        const topLeftZone = document.getElementById('topLeftZone');
+        const zeroOverlay = document.getElementById('zeroOverlay');
+
         // 預先載入圖片
+        const img0 = new Image(); img0.src = '0.jpg';
         const img3 = new Image(); img3.src = '3.png';
         const img4 = new Image(); img4.src = '4.jpg';
 
@@ -235,6 +272,39 @@
             } else {
                 if (document.exitFullscreen) document.exitFullscreen();
             }
+        });
+
+        // --- 0.jpg 切換邏輯 ---
+        // 點擊左上角返回區塊 (顯示 0.jpg)
+        topLeftZone.addEventListener('click', (e) => {
+            e.stopPropagation(); // 阻止事件往下傳遞給 container 觸發核銷
+            if (isSignificantDrag) return;
+            zeroOverlay.classList.add('show');
+        });
+
+        // 點擊 0.jpg 畫面任意區域 (隱藏 0.jpg 並重置狀態)
+        zeroOverlay.addEventListener('click', (e) => {
+            e.stopPropagation(); // 攔截點擊，不觸發下方 container 的核銷
+            zeroOverlay.classList.remove('show');
+            
+            // 強制重置回初始狀態 (回到 1.jpg)
+            currentStep = 0;
+            topMainImage.src = '1.jpg';          
+            middleMainImage.src = '1.jpg';          
+            bottomMainImage.src = '1.jpg';
+            
+            // 確保隱藏所有對話框與遮罩
+            topBackdrop.classList.remove('show');    
+            middleBackdrop.classList.remove('show'); 
+            bottomBackdrop.classList.remove('show'); 
+            topDialog.classList.remove('show'); 
+            middleDialog.classList.remove('show'); 
+            bottomDialog.classList.remove('show'); 
+            
+            // 確保拖曳位移歸零
+            scrollContent.style.transition = 'none';
+            scrollContent.style.transform = `translateX(0px)`;
+            currentTranslate = 0;
         });
 
         // --- 橫向拖動與橡皮筋回彈 (X軸) 邏輯 ---
