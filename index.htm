@@ -282,9 +282,10 @@
             isSignificantDrag = false; // 每次觸碰螢幕先重置拖拉判斷
             if (!canDrag()) return; // 狀態不允許時，直接略過不處理拖曳
 
-            // 限制：只有在 Y 區間內允許觸發橫向拖動
+            // 限制：只要手指起始位置大於 DRAG_START_Y (130px 以下)，即可觸發拖拉
+            // (0 ~ 130px 區間的左右滑動不會有反應)
             const touchY = e.touches[0].clientY;
-            if (e.touches.length === 1 && touchY >= DRAG_START_Y && touchY <= DRAG_END_Y) {
+            if (e.touches.length === 1 && touchY >= DRAG_START_Y) {
                 startDrag(e.touches[0].clientX);
             }
         }, { passive: true });
@@ -300,7 +301,8 @@
             isSignificantDrag = false;
             if (!canDrag()) return; // 狀態不允許時，直接略過
             
-            if (e.clientY >= DRAG_START_Y && e.clientY <= DRAG_END_Y) {
+            // 限制：只要滑鼠起始位置大於 DRAG_START_Y (130px 以下)，即可觸發拖拉
+            if (e.clientY >= DRAG_START_Y) {
                 startDrag(e.clientX);
             }
         });
