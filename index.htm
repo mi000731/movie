@@ -9,15 +9,14 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#f5f1f5">
+    <meta name="theme-color" content="#000000">
 
     <style>
         :root {
             /* ========================================================= */
             /* ★ 可修改設定區 ★ */
-            /* 拖曳範圍的起始與結束 Y 座標 (可隨時微調) */
+            /* 拖曳範圍的起始 Y 座標 (可隨時微調) */
             --drag-start-y: 130px;
-            --drag-end-y: 700px;
             /* 拖拉時露出的背景顏色 */
             --drag-bg-color: #f5f1f5;
             /* ========================================================= */
@@ -28,7 +27,7 @@
             padding: 0;
             background-color: #000;
             width: 100%;
-            height: 100%;
+            height: 100vh;
             height: 100dvh; 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             
@@ -45,18 +44,16 @@
         }
 
         .phone-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            position: relative; /* 改回 relative，確保跟隨 body 真實高度 */
+            width: 100%;
+            height: 100%;
             background-color: #fff;
             overflow: hidden;
             cursor: pointer; 
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* 視覺切割容器共用設定 (改為上、中、下三塊) */
+        /* 視覺切割容器共用設定 (改為上、下兩塊) */
         .split-container {
             position: absolute;
             left: 0;
@@ -71,22 +68,16 @@
             z-index: 3;
         }
 
-        /* 中間部：包含可拖拉的區域 */
-        .middle-part {
+        /* 下半部：包含可拖拉的區域 */
+        .bottom-part {
             top: var(--drag-start-y);
-            height: calc(var(--drag-end-y) - var(--drag-start-y));
+            bottom: 0;
             z-index: 2;
             background-color: var(--drag-bg-color); /* 拖拉露出的底色 */
         }
 
-        /* 下半部：固定不動 */
-        .bottom-part {
-            top: var(--drag-end-y);
-            bottom: 0;
-            z-index: 1;
-        }
 
-        /* 可拖曳的包裹層 (只在中間段有作用) */
+        /* 可拖曳的包裹層 (只在下半部有作用) */
         .drag-wrapper {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -99,8 +90,7 @@
             position: absolute;
             left: 0;
             width: 100%; /* 改用 100% 避免 vw 產生的子像素黑線問題 */
-            height: 100vh;
-            height: 100dvh;
+            height: var(--app-height, 100dvh); /* 使用 JS 動態計算的精準高度 */
             pointer-events: none; 
         }
 
@@ -108,11 +98,8 @@
         .top-part .full-content {
             top: 0;
         }
-        .middle-part .full-content {
-            top: calc(-1 * var(--drag-start-y));
-        }
         .bottom-part .full-content {
-            top: calc(-1 * var(--drag-end-y));
+            top: calc(-1 * var(--drag-start-y));
         }
 
         /* 滿版底圖 */
@@ -207,23 +194,14 @@
             </div>
         </div>
 
-        <!-- ================= 中間部 (可拖拉區間) ================= -->
-        <div class="split-container middle-part">
+        <!-- ================= 下半部 (可拖拉區間) ================= -->
+        <div class="split-container bottom-part">
             <div class="drag-wrapper" id="scrollContent">
                 <div class="full-content">
-                    <img src="1.jpg" id="middleMainImage" class="base-image" alt="背景畫面">
-                    <div class="backdrop" id="middleBackdrop"></div>
-                    <img src="" id="middleDialog" class="dialog-overlay" alt="對話框">
+                    <img src="1.jpg" id="bottomMainImage" class="base-image" alt="背景畫面">
+                    <div class="backdrop" id="bottomBackdrop"></div>
+                    <img src="" id="bottomDialog" class="dialog-overlay" alt="對話框">
                 </div>
-            </div>
-        </div>
-
-        <!-- ================= 下半部 (固定) ================= -->
-        <div class="split-container bottom-part">
-            <div class="full-content">
-                <img src="1.jpg" id="bottomMainImage" class="base-image" alt="背景畫面">
-                <div class="backdrop" id="bottomBackdrop"></div>
-                <img src="" id="bottomDialog" class="dialog-overlay" alt="對話框">
             </div>
         </div>
 
@@ -236,19 +214,22 @@
         const scrollContent = document.getElementById('scrollContent');
         const fullscreenBtn = document.getElementById('fullscreenBtn');
         
+        // 新增：動態計算精準的容器高度，避免 100dvh 在部分手機瀏覽器縮放時產生底部黑邊
+        const updateAppHeight = () => {
+            const h = container.clientHeight;
+            document.documentElement.style.setProperty('--app-height', `${h}px`);
+        };
+        window.addEventListener('resize', updateAppHeight);
+        updateAppHeight(); // 初始執行一次
+
         // 自動從 CSS :root 中讀取設定變數作為 JS 判斷依據
         const rootStyles = getComputedStyle(document.documentElement);
         const DRAG_START_Y = parseInt(rootStyles.getPropertyValue('--drag-start-y').trim());
-        const DRAG_END_Y = parseInt(rootStyles.getPropertyValue('--drag-end-y').trim());
 
-        // 取得上、中、下三個區塊的元素，以同步狀態
+        // 取得上、下兩個區塊的元素，以同步狀態
         const topMainImage = document.getElementById('topMainImage');
         const topBackdrop = document.getElementById('topBackdrop');
         const topDialog = document.getElementById('topDialog');
-
-        const middleMainImage = document.getElementById('middleMainImage');
-        const middleBackdrop = document.getElementById('middleBackdrop');
-        const middleDialog = document.getElementById('middleDialog');
 
         const bottomMainImage = document.getElementById('bottomMainImage');
         const bottomBackdrop = document.getElementById('bottomBackdrop');
@@ -290,15 +271,12 @@
             // 強制重置回初始狀態 (回到 1.jpg)
             currentStep = 0;
             topMainImage.src = '1.jpg';          
-            middleMainImage.src = '1.jpg';          
             bottomMainImage.src = '1.jpg';
             
             // 確保隱藏所有對話框與遮罩
             topBackdrop.classList.remove('show');    
-            middleBackdrop.classList.remove('show'); 
             bottomBackdrop.classList.remove('show'); 
             topDialog.classList.remove('show'); 
-            middleDialog.classList.remove('show'); 
             bottomDialog.classList.remove('show'); 
             
             // 確保拖曳位移歸零
@@ -309,18 +287,29 @@
 
         // --- 橫向拖動與橡皮筋回彈 (X軸) 邏輯 ---
         let startX = 0;
+        let startY = 0;
         let currentTranslate = 0;
         let isDragging = false;
         let isSignificantDrag = false; 
+        // 標記這一次的觸控是否在禁止拖拉的頂部區域開始
+        let isStartedInForbiddenZone = false;
 
-        const startDrag = (x) => {
+        const startDrag = (x, y) => {
+             // 如果起始點在 START_Y 以上 (0~130px)，標記並直接中斷，不允許拖曳
+            if (y < DRAG_START_Y) {
+                isStartedInForbiddenZone = true;
+                return;
+            }
+
+            isStartedInForbiddenZone = false;
             startX = x;
+            startY = y;
             isDragging = true;
             scrollContent.style.transition = 'none';
         };
 
         const moveDrag = (x) => {
-            if (!isDragging) return;
+            if (!isDragging || isStartedInForbiddenZone) return;
             const deltaX = x - startX;
 
             // 只要 X 軸移動超過 5px，就判定是拖曳，不要觸發點擊核銷
@@ -334,6 +323,7 @@
         };
 
         const endDrag = () => {
+            isStartedInForbiddenZone = false; // 重置標記
             if (!isDragging) return;
             isDragging = false;
             
@@ -352,11 +342,8 @@
             isSignificantDrag = false; // 每次觸碰螢幕先重置拖拉判斷
             if (!canDrag()) return; // 狀態不允許時，直接略過不處理拖曳
 
-            // 限制：只要手指起始位置大於 DRAG_START_Y (130px 以下)，即可觸發拖拉
-            // (0 ~ 130px 區間的左右滑動不會有反應)
-            const touchY = e.touches[0].clientY;
-            if (e.touches.length === 1 && touchY >= DRAG_START_Y) {
-                startDrag(e.touches[0].clientX);
+            if (e.touches.length === 1) {
+                startDrag(e.touches[0].clientX, e.touches[0].clientY);
             }
         }, { passive: true });
         
@@ -369,19 +356,16 @@
         // 電腦滑鼠測試事件綁定
         container.addEventListener('mousedown', (e) => {
             isSignificantDrag = false;
-            if (!canDrag()) return; // 狀態不允許時，直接略過
+            if (!canDrag()) return; 
             
-            // 限制：只要滑鼠起始位置大於 DRAG_START_Y (130px 以下)，即可觸發拖拉
-            if (e.clientY >= DRAG_START_Y) {
-                startDrag(e.clientX);
-            }
+            startDrag(e.clientX, e.clientY);
         });
         container.addEventListener('mousemove', (e) => {
             if(isDragging) moveDrag(e.clientX);
         });
         window.addEventListener('mouseup', endDrag);
 
-        // --- 狀態同步邏輯 (同步更新上、中、下三等分的圖形) ---
+        // --- 狀態同步邏輯 (同步更新上、下兩等分的圖形) ---
         let currentStep = 0;
 
         container.addEventListener('click', () => {
@@ -391,15 +375,12 @@
             if (currentStep === 0) {
                 // 【第 1 次點擊】同步顯示對話框
                 topDialog.src = '2.png';
-                middleDialog.src = '2.png';
                 bottomDialog.src = '2.png';
                 
                 topBackdrop.classList.add('show');
-                middleBackdrop.classList.add('show');      
                 bottomBackdrop.classList.add('show');      
                 
                 topDialog.classList.add('show');   
-                middleDialog.classList.add('show');   
                 bottomDialog.classList.add('show');   
                 
                 currentStep = 1;
@@ -407,23 +388,19 @@
             else if (currentStep === 1) {
                 // 【第 2 次點擊】同步切換按下狀態
                 topDialog.src = '3.png';
-                middleDialog.src = '3.png';
                 bottomDialog.src = '3.png';
                 currentStep = 2;
 
                 setTimeout(() => {
                     topBackdrop.classList.remove('show');    
-                    middleBackdrop.classList.remove('show'); 
                     bottomBackdrop.classList.remove('show'); 
                     
                     topDialog.classList.remove('show'); 
-                    middleDialog.classList.remove('show'); 
                     bottomDialog.classList.remove('show'); 
                     
                     setTimeout(() => {
                         // 同步切換最終完成圖片
                         topMainImage.src = '4.jpg';          
-                        middleMainImage.src = '4.jpg';          
                         bottomMainImage.src = '4.jpg';          
                         currentStep = 3;                  
                     }, 200); 
