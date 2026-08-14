@@ -81,6 +81,7 @@
         .top-part {
             top: 0;
             height: var(--drag-start-y);
+            background-color: #a72687; /* 填補圖片往下位移後露出的頂部空間 */
         }
 
         /* 中間：包含可拖拉的區域 */
@@ -130,7 +131,7 @@
             height: 100%;
             object-fit: cover;
             display: block;
-            transform: translateY(40px); /* 將底圖整體向下位移 10px */
+            transform: translateY(40px); /* 將底圖整體向下位移 50px */
         }
 
         /* 統一的黑底遮罩特效 (放在最外層) */
