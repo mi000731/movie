@@ -27,7 +27,7 @@
         body {
             margin: 0;
             padding: 0;
-            background-color: #000;
+            background-color: #f5f1f5; /* 更改為與 App 相同的底色 */
             width: 100%;
             height: 100vh;
             height: 100dvh; 
@@ -45,7 +45,7 @@
         }
         
         html {
-            background-color: #000;
+            background-color: #f5f1f5; /* 更改為與 App 相同的底色 */
             width: 100%;
             height: 100%;
         }
@@ -257,6 +257,10 @@
         };
         window.addEventListener('resize', updateAppHeight);
         updateAppHeight(); 
+        
+        // 解決 iOS 加入主畫面後，初期 100dvh 計算延遲的問題
+        setTimeout(updateAppHeight, 100);
+        setTimeout(updateAppHeight, 300);
 
         // 自動從 CSS :root 中讀取設定變數作為 JS 判斷依據
         const rootStyles = getComputedStyle(document.documentElement);
